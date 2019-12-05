@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Noble Prize</title>
+<style>
+body {
+    font-size: 20px;
+    background-color: azure;
+    }
+table {
+    width: 80%;
+    margin: 16px auto;
+    text-align: center;
+    }
+h1 {
+    text-align: center;   
+    }
+#menu {
+    text-align: center;    
+    }
+#genderSelect {
+    float: right;
+    margin-right: 10px;
+    }
+.motivCol {
+       text-align: left; 
+    }
+
+/* Much of the styling for the modal below was inspired by the information available at https://www.w3schools.com/howto/howto_css_modals.asp */
+
+.modal {
+    display: none;
+    position: fixed; 
+    z-index: 1; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgb(0,0,0); 
+    background-color: rgba(0,0,0,0.4); 
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; 
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; 
+}
+
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+#displayTable tr:hover {background-color: #ddd;}
+    
+</style>
+</head>
+<body>
+<div><h1>The Nobel Prize: 1970 - Present</h1></div>
+<div id="menu">
+<select id="yearsMenu"> 
+    <option value="">Please select a range of years</option>
+    <option value="1970">1970 to 1974</option>
+    <option value="1975">1975 to 1979</option>
+    <option value="1980">1980 to 1984</option>
+    <option value="1985">1985 to 1989</option>
+    <option value="1990">1990 to 1994</option>
+    <option value="1995">1995 to 1999</option>
+    <option value="2000">2000 to 2004</option>
+    <option value="2005">2005 to 2009</option>
+    <option value="2010">2010 to 2014</option>
+    <option value="2015">2015 to Present</option>
+</select>
+</div>
+<div id="genderSelect">
+</div>
+<div id="myModal" class="modal">
+
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <p id="extraInfo"></p>
+  </div>
+
+</div>
+<div id = "tableArea">
+</div>
+<script>
+var prizesByYear;
+var winnersByID; 
+var modal = document.getElementById("myModal");
+var span = document.getElementsByClassName("close")[0];
+    
+function menuFiller (prizesByYear) {
+    var physics = prizesByYear.prizes[0].category;
+    var chemistry = prizesByYear.prizes[1].category;
+    var medicine = prizesByYear.prizes[2].category;
+    var peace = prizesByYear.prizes[3].category;
+    var economics = prizesByYear.prizes[4].category;
+    var literature = prizesByYear.prizes[8].category;
+    var htmlText = "<select id='categoriesMenu'><option value=''>Please select a category</option><option value='" + physics + "'>" + physics + "</option><option value='" + chemistry + "'>" + chemistry + "</option><option value='" + medicine + "'>" + medicine + "</option><option value='" + peace + "'>" + peace + "</option><option value='" + economics + "'>" + economics + "</option><option value='" + literature + "'>" + literature + "</option></select><button type='submit' onmouseover='hover(this)' onmouseout='mouseOutButton(this)' onclick='displayInfo();'>Submit!</button>"
+    document.getElementById("menu").innerHTML += htmlText;
+}
+ 
+function displayInfo(){
+
+    var tbl = document.getElementById("displayTable");
+    if(tbl) tbl.parentNode.removeChild(tbl);
+    var btn = document.getElementById("radiobtns");
+    if(btn) btn.parentNode.removeChild(btn);
+    var msg = document.getElementById("errorMessage");
+    if(msg) msg.parentNode.removeChild(msg);
+    
+    var selectedYears = document.getElementById("yearsMenu").value;
+    var selectedCategories = document.getElementById("categoriesMenu").value;
+    if (selectedYears == "") {
+        var message = "";
+        message += "<h1 id='errorMessage'>Please select a range of years!</h1>";
+        document.getElementById("tableArea").innerHTML += message;
+    }
+    else {
+    var table = "<table id='displayTable' border=1>";
+    table += "<tr><th>Year</th><th>Category</th><th>Name</th><th>Motivation</th></tr>";
+    
+    for (i in prizesByYear.prizes) {
+    
+        if (selectedCategories == '') {
+        if (prizesByYear.prizes[i].year >= selectedYears && prizesByYear.prizes[i].year < parseInt(selectedYears)+5) {
+            var year = prizesByYear.prizes[i].year;
+            var category = prizesByYear.prizes[i].category;
+            for (x in prizesByYear.prizes[i].laureates) {
+                var firstName = prizesByYear.prizes[i].laureates[x].firstname;
+                var surname = prizesByYear.prizes[i].laureates[x].surname;
+                var idNo = prizesByYear.prizes[i].laureates[x].id;
+               for (y in winnersByID.laureates) {
+                    if (winnersByID.laureates[y].id == idNo && winnersByID.laureates[y].gender == "male"){
+                        var maleFemale = "male";
+                    }
+                    else if (winnersByID.laureates[y].id == idNo && winnersByID.laureates[y].gender == "female"){
+                        var maleFemale = "female";
+                    }
+                    else if (winnersByID.laureates[y].id == idNo && winnersByID.laureates[y].gender == "org"){
+                        var maleFemale = "org";
+                    }
+                }
+                if (prizesByYear.prizes[i].laureates[x].motivation == undefined) {
+                    var motivation = "<p>Not specified.</p>"
+                }
+                else {
+                    var motivation = prizesByYear.prizes[i].laureates[x].motivation;
+                }
+                table += "<tr class=" + maleFemale + "><td>" + year + "</td><td>" + category + "</td><td id=" + idNo + " onmouseover='tableHover(this)' onmouseout='mouseOut(this)' onclick='moreInfo(this.id)'>"  + firstName + " " + surname + "</td><td class='motivCol'>" + motivation + "</td></tr>"
+            }
+             
+        }
+        }
+        else {
+            if (prizesByYear.prizes[i].year >= selectedYears && prizesByYear.prizes[i].year < parseInt(selectedYears)+5 && prizesByYear.prizes[i].category == selectedCategories) {
+            var year = prizesByYear.prizes[i].year;
+            var category = prizesByYear.prizes[i].category;
+            for (x in prizesByYear.prizes[i].laureates) {
+                var firstName = prizesByYear.prizes[i].laureates[x].firstname;
+                var surname = prizesByYear.prizes[i].laureates[x].surname;
+                var idNo = prizesByYear.prizes[i].laureates[x].id;
+                for (y in winnersByID.laureates) {
+                    if (winnersByID.laureates[y].id == idNo && winnersByID.laureates[y].gender == "male"){
+                        var maleFemale = "male";
+                    }
+                    else if (winnersByID.laureates[y].id == idNo && winnersByID.laureates[y].gender == "female"){
+                        var maleFemale = "female";
+                    }
+                    else if (winnersByID.laureates[y].id == idNo && winnersByID.laureates[y].gender == "org"){
+                        var maleFemale = "org";
+                    }
+                }
+                if (prizesByYear.prizes[i].laureates[x].motivation == undefined) {
+                    var motivation = "<p>Not specified.</p>"
+                }
+                else {
+                    var motivation = prizesByYear.prizes[i].laureates[x].motivation;
+                }
+                table += "<tr class=" + maleFemale + "><td>" + year + "</td><td>" + category + "</td><td id=" + idNo + " onmouseover='tableHover(this)' onmouseout='mouseOut(this)' onclick='moreInfo(this.id)'>"  + firstName + " " + surname + "</td><td class='motivCol'>" + motivation + "</td></tr>"
+            }
+             
+        }
+        }
+        
+    }
+    table += "</table>"
+    document.getElementById("tableArea").innerHTML += table;
+    
+    var radioButtons = "";
+    radioButtons += "<form id='radiobtns'><input type='radio' name='gender' id ='all' value='all' onclick='allFilter()' checked> All Winners<br><input type='radio' name='gender' id='femaleSelect' value='female' onclick='femaleFilter()'> Female<br><input type='radio' name='gender' id='maleSelect' value='male' onclick='maleFilter()'> Male<br></form>"
+    document.getElementById("genderSelect").innerHTML += radioButtons;
+}
+}
+
+function allFilter(){
+        displayInfo();
+    }
+
+function femaleFilter(){
+    displayInfo();
+    document.getElementById("femaleSelect").checked = true;
+    var table = document.getElementById('displayTable');
+    for (i=0; i < table.rows.length; i++)
+    {
+        if (table.rows[i].className == "male" || table.rows[i].className == "org")
+            table.rows[i].style.display = "none";
+    }
+}
+
+function maleFilter(){
+    displayInfo();
+    document.getElementById("maleSelect").checked = true;
+    var table = document.getElementById('displayTable');
+    for (i=0; i < table.rows.length; i++)
+    {
+        if (table.rows[i].className == "female" || table.rows[i].className == "org")
+            table.rows[i].style.display = "none";
+    }
+}
+
+function moreInfo(currentId){
+    var mdl = document.getElementById("infoList");
+    if(mdl) mdl.parentNode.removeChild(mdl);
+    
+    for (i in winnersByID.laureates) {
+    if (winnersByID.laureates[i].id == currentId){
+        if (winnersByID.laureates[i].born == "0000-00-00" || winnersByID.laureates[i].born == undefined){
+            var yearOfBirth = "Unknown";
+        }
+        else {
+            var yearOfBirth = winnersByID.laureates[i].born.substr(0,4);
+        }
+         if (winnersByID.laureates[i].died == "0000-00-00" || winnersByID.laureates[i].died == undefined){
+            var yearOfDeath = "Not Applicable / Unknown";
+        }
+        else {
+            var yearOfDeath = winnersByID.laureates[i].died.substr(0,4);
+        }
+        if (winnersByID.laureates[i].bornCity == "0000-00-00" || winnersByID.laureates[i].bornCity == undefined){
+            var cityOfBirth = "Unknown";
+        }
+        else {
+            var cityOfBirth = winnersByID.laureates[i].bornCity;
+        }
+        for (x in winnersByID.laureates[i].prizes) {
+            if (cat) {
+                var cat1 = winnersByID.laureates[i].prizes[x].category;
+            }
+            else {
+                var cat = winnersByID.laureates[i].prizes[x].category;
+            }
+            if (motiv) {
+                var motiv1 = winnersByID.laureates[i].prizes[x].motivation;
+            }
+            else {
+                var motiv = winnersByID.laureates[i].prizes[x].motivation;
+            }
+            for (z in winnersByID.laureates[i].prizes[x].affiliations) {
+                if (affiliation) {
+                    var affiliation1 = winnersByID.laureates[i].prizes[x].affiliations[z].name;
+                }
+                else {
+                    var affiliation = winnersByID.laureates[i].prizes[x].affiliations[z].name;
+                }
+            }
+            
+        }
+        if (cat1 == undefined && motiv1 == undefined && affiliation1 == undefined) {
+        var modalContent = "<ul id='infoList'><li>Year of Birth: " + yearOfBirth + "</li><li>Year of Death: " + yearOfDeath + "</li><li>City of Birth: " + cityOfBirth + "</li><li>Category of Award: " + cat + "</li><li>Motivation: " + motiv + "</li><li>Affiliatons: " + affiliation + "</li></ul>"
+        }
+        else if (cat1 == undefined && motiv1 == undefined && affiliation1 != undefined) {
+        var modalContent = "<ul id='infoList'><li>Year of Birth: " + yearOfBirth + "</li><li>Year of Death: " + yearOfDeath + "</li><li>City of Birth: " + cityOfBirth + "</li><li>Category of Award: " + cat + "</li><li>Motivation: " + motiv + "</li><li>Affiliatons: " + affiliation + "<br>" + affiliation1 + "</li></ul>"
+        }
+        else if (cat1 != undefined && motiv1 != undefined && affiliation1 != undefined) {
+        var modalContent = "<ul id='infoList'><li>Year of Birth: " + yearOfBirth + "</li><li>Year of Death: " + yearOfDeath + "</li><li>City of Birth: " + cityOfBirth + "</li><li>Categories of Awards: " + cat + "<br>" + cat1 +  "</li><li>Motivations: " + motiv + "<br>" + motiv1 + "</li><li>Affiliatons: " + affiliation + "<br>" + affiliation1 + "</li></ul>"
+        }
+        else if (cat1 != undefined && motiv1 != undefined && affiliation1 == undefined) {
+        var modalContent = "<ul id='infoList'><li>Year of Birth: " + yearOfBirth + "</li><li>Year of Death: " + yearOfDeath + "</li><li>City of Birth: " + cityOfBirth + "</li><li>Categories of Awards: " + cat + "<br>" + cat1 +  "</li><li>Motivations: " + motiv + "<br>" + motiv1 + "</li><li>Affiliatons: " + affiliation + "</li></ul>"
+        }
+        document.getElementById("extraInfo").innerHTML += modalContent;
+     
+    }
+    }
+    modal.style.display = "block";
+}
+
+span.onclick = function() {
+  modal.style.display = "none";
+}
+
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}
+
+function tableHover(cell) {
+    cell.style.textDecoration = "underline";
+    cell.style.cursor = "pointer";
+}
+
+function hover(btn) {
+    btn.style.backgroundColor = "red";
+    btn.style.cursor = "pointer"; 
+}
+
+function mouseOut(cell) { 
+    cell.style.textDecoration= "none";
+}
+
+function mouseOutButton(btn) {
+    btn.style.backgroundColor = "buttonface";
+}
+var xmlhttp = new XMLHttpRequest();
+var url = "prizesByYear.json";
+
+xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+        prizesByYear = JSON.parse(this.responseText);
+        menuFiller(prizesByYear);
+    }
+};
+xmlhttp.open("GET", url, true);
+xmlhttp.send();
+
+var xmlhttp1 = new XMLHttpRequest();
+var url = "winnersByID.json";
+
+xmlhttp1.onreadystatechange = function() {
+    if (xmlhttp1.readyState == 4 && xmlhttp1.status == 200) {
+        winnersByID = JSON.parse(this.responseText);
+    }
+};
+xmlhttp1.open("GET", url, true);
+xmlhttp1.send();
+
+    
+</script>
+</body>
+</html>
